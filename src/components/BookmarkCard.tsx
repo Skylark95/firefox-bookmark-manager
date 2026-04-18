@@ -42,7 +42,7 @@ export default function BookmarkCard({ bookmark, onTagClick, onCategoryChange }:
       <div className="flex items-center justify-between gap-2">
         <button
           onClick={() => onCategoryChange(category)}
-          className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 hover:bg-brand-200 dark:bg-slate-600 dark:text-brand-400 dark:hover:bg-slate-500 transition-colors shrink-0"
+          className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 hover:bg-brand-200 dark:bg-slate-600 dark:text-brand-200 dark:hover:bg-slate-500 transition-colors shrink-0"
           title={`Filter by ${category}`}
         >
           {category}
