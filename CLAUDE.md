@@ -66,6 +66,7 @@ The raw Firefox export (from the About Sync extension) does **not** match this s
 |-----|----------|
 | `offline_bookmarks` | Full bookmark array (target schema) |
 | `offline_bookmarks_filters` | `{ activeCategory, activeTags, searchQuery, sortOrder }` |
+| `theme` | `'dark'` or `'light'` — persisted by `useDarkMode` hook in `App.tsx` |
 
 ### Pure utility functions (`src/utils/`)
 
@@ -85,10 +86,14 @@ Tests live in `src/utils/__tests__/`.
 3. `searchQuery` — split on whitespace; every term must appear in `title` OR `url` (case-insensitive)
 4. Sort applied after filter: `newest` (lastUsed desc), `oldest` (asc), `alpha` (title localeCompare)
 
+### Dark mode
+
+Tailwind's `darkMode: 'class'` strategy is used — the `dark` class on `<html>` activates all `dark:` variants. The `useDarkMode` hook in `App.tsx` initialises from `localStorage` (`theme` key), falls back to `prefers-color-scheme`, and toggles the class via `document.documentElement.classList`. `isDark` and `onToggleDark` are threaded as props into both views and down into `Sidebar`. Toggle buttons (sun/moon SVG) appear in the `UploadView` header, the `DashboardView` mobile header, and the `Sidebar` desktop header. The `bg-slate-800` AI prompt block in `UploadView` is intentionally dark in both modes — do not add `dark:` overrides to it.
+
 ### Component responsibilities
 
-- **`DashboardView`** — layout only; owns `drawerOpen` (mobile drawer state); passes all filter props to `Sidebar` via a spread object
-- **`Sidebar`** — search input, sort select, category buttons, tag cloud, "Load new file" button; sort `onChange` casts `e.target.value as SortOrder`
+- **`DashboardView`** — layout only; owns `drawerOpen` (mobile drawer state); passes all filter props plus `isDark`/`onToggleDark` to `Sidebar` via a spread object; renders the dark mode toggle in the mobile header
+- **`Sidebar`** — search input, sort select, category buttons, tag cloud, "Load new file" button, dark mode toggle in header; sort `onChange` casts `e.target.value as SortOrder`
 - **`BookmarkGrid`** — renders cards or empty state
 - **`BookmarkCard`** — clicking category badge calls `onCategoryChange`; clicking tag badge calls `onTagClick`; copy URL button with clipboard fallback
 

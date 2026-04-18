@@ -7,6 +7,23 @@ import type { Bookmark, SortOrder, FilterState } from './types'
 const STORAGE_KEY = 'offline_bookmarks'
 const FILTERS_KEY = 'offline_bookmarks_filters'
 
+function useDarkMode(): [boolean, () => void] {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    const stored = readStorage('theme')
+    if (stored === 'dark') return true
+    if (stored === 'light') return false
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark)
+    writeStorage('theme', isDark ? 'dark' : 'light')
+  }, [isDark])
+
+  const toggleDark = useCallback(() => setIsDark(prev => !prev), [])
+  return [isDark, toggleDark]
+}
+
 function readStorage(key: string): string | null {
   try { return localStorage.getItem(key) } catch { return null }
 }
@@ -20,6 +37,7 @@ function removeStorage(key: string): void {
 }
 
 export default function App() {
+  const [isDark, toggleDark] = useDarkMode()
   const [bookmarks, setBookmarks]             = useState<Bookmark[]>([])
   const [isLoaded, setIsLoaded]               = useState(false)
   const [activeCategory, setActiveCategory]   = useState<string | null>(null)
@@ -100,7 +118,7 @@ export default function App() {
   )
 
   if (!isLoaded) {
-    return <UploadView onDataLoaded={handleDataLoaded} />
+    return <UploadView onDataLoaded={handleDataLoaded} isDark={isDark} onToggleDark={toggleDark} />
   }
 
   return (
@@ -119,6 +137,8 @@ export default function App() {
       onSortChange={setSortOrder}
       onClearTags={handleClearTags}
       onReset={handleReset}
+      isDark={isDark}
+      onToggleDark={toggleDark}
     />
   )
 }

@@ -37,21 +37,21 @@ export default function BookmarkCard({ bookmark, onTagClick, onCategoryChange }:
   }
 
   return (
-    <article className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+    <article className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
       {/* Top row: category badge + date */}
       <div className="flex items-center justify-between gap-2">
         <button
           onClick={() => onCategoryChange(category)}
-          className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 hover:bg-brand-200 transition-colors shrink-0"
+          className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 hover:bg-brand-200 dark:bg-slate-600 dark:text-brand-400 dark:hover:bg-slate-500 transition-colors shrink-0"
           title={`Filter by ${category}`}
         >
           {category}
         </button>
-        <span className="text-xs text-slate-400 shrink-0">{formatDate(lastUsed)}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{formatDate(lastUsed)}</span>
       </div>
 
       {/* Title */}
-      <h2 className="text-sm font-semibold text-slate-800 line-clamp-2 leading-snug">
+      <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-2 leading-snug">
         {title}
       </h2>
 
@@ -61,7 +61,7 @@ export default function BookmarkCard({ bookmark, onTagClick, onCategoryChange }:
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-brand-600 hover:text-brand-800 hover:underline truncate flex-1"
+          className="text-xs text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-200 hover:underline truncate flex-1"
           title={url}
         >
           {getHostname(url)}
@@ -69,7 +69,7 @@ export default function BookmarkCard({ bookmark, onTagClick, onCategoryChange }:
         <button
           onClick={handleCopyUrl}
           title="Copy URL"
-          className="shrink-0 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded"
+          className="shrink-0 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1 rounded"
         >
           {urlCopied ? (
             <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -85,12 +85,12 @@ export default function BookmarkCard({ bookmark, onTagClick, onCategoryChange }:
 
       {/* Tags */}
       {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-auto pt-1 border-t border-slate-100">
+        <div className="flex flex-wrap gap-1.5 mt-auto pt-1 border-t border-slate-100 dark:border-slate-700">
           {tags.map(tag => (
             <button
               key={tag}
               onClick={() => onTagClick(tag)}
-              className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-brand-100 hover:text-brand-700 transition-colors"
+              className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-brand-100 hover:text-brand-700 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-brand-400 transition-colors"
             >
               #{tag}
             </button>

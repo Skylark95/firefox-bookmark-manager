@@ -15,21 +15,44 @@ interface Props {
   onSortChange: (order: SortOrder) => void;
   onClearTags: () => void;
   onReset: () => void;
+  isDark: boolean;
+  onToggleDark: () => void;
 }
 
 export default function Sidebar({
   categories, allTags,
   activeCategory, activeTags, searchQuery, sortOrder, totalCount, filteredCount,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+  isDark, onToggleDark,
 }: Props) {
   return (
-    <div className="flex flex-col h-full bg-white border-r border-slate-200">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-slate-200">
-        <h1 className="text-base font-bold text-slate-800">Bookmark Manager</h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Showing {filteredCount} of {totalCount}
-        </p>
+      <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-base font-bold text-slate-800 dark:text-slate-100">Bookmark Manager</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Showing {filteredCount} of {totalCount}
+          </p>
+        </div>
+        <button
+          onClick={onToggleDark}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg
+                     text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700
+                     transition-colors shrink-0"
+        >
+          {isDark ? (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+          )}
+        </button>
       </div>
 
       {/* Scrollable content */}
@@ -42,18 +65,18 @@ export default function Sidebar({
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
             placeholder="Search bookmarks…"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400 px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           />
         </div>
 
         {/* Sort */}
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Sort</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Sort</h3>
           <select
             value={sortOrder}
             onChange={e => onSortChange(e.target.value as SortOrder)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-slate-100
                        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
                        min-h-[44px]"
           >
@@ -65,14 +88,14 @@ export default function Sidebar({
 
         {/* Categories */}
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Category</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Category</h3>
           <div className="space-y-0.5">
             <button
               onClick={() => onCategoryChange(null)}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm min-h-[44px] transition-colors
                 ${activeCategory === null
-                  ? 'bg-brand-100 text-brand-700 font-medium'
-                  : 'text-slate-700 hover:bg-slate-100'
+                  ? 'bg-brand-100 text-brand-700 font-medium dark:bg-slate-600 dark:text-brand-500'
+                  : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                 }`}
             >
               All categories
@@ -83,8 +106,8 @@ export default function Sidebar({
                 onClick={() => onCategoryChange(cat)}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm min-h-[44px] transition-colors
                   ${activeCategory === cat
-                    ? 'bg-brand-100 text-brand-700 font-medium'
-                    : 'text-slate-700 hover:bg-slate-100'
+                    ? 'bg-brand-100 text-brand-700 font-medium dark:bg-slate-600 dark:text-brand-500'
+                    : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                   }`}
               >
                 {cat}
@@ -96,11 +119,11 @@ export default function Sidebar({
         {/* Tags */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Tags</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Tags</h3>
             {activeTags.length > 0 && (
               <button
                 onClick={onClearTags}
-                className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                className="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
               >
                 Clear all
               </button>
@@ -114,7 +137,7 @@ export default function Sidebar({
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors
                   ${activeTags.includes(tag)
                     ? 'bg-brand-600 text-white'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500'
                   }`}
               >
                 #{tag}
@@ -125,11 +148,11 @@ export default function Sidebar({
       </div>
 
       {/* Footer: Load New File */}
-      <div className="px-4 py-4 border-t border-slate-200">
+      <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={onReset}
-          className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600
-                     border border-slate-300 hover:bg-slate-50 transition-colors min-h-[44px]"
+          className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300
+                     border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
         >
           Load new file
         </button>

@@ -63,6 +63,7 @@ The app expects a JSON array. Each item must have:
 - **Sort** — newest first, oldest first, or A–Z by title
 - **Filter persistence** — active filters survive page reloads
 - **Copy URL** — clipboard button on every card
+- **Dark mode** — toggle in the sidebar and mobile header; respects system preference on first visit, persists your choice
 - **Mobile** — responsive layout with a collapsible sidebar drawer
 
 ## Development

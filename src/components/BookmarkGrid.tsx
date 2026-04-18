@@ -10,7 +10,7 @@ interface Props {
 export default function BookmarkGrid({ bookmarks, onTagClick, onCategoryChange }: Props) {
   if (bookmarks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-slate-400 px-4">
+      <div className="flex flex-col items-center justify-center h-64 text-slate-400 dark:text-slate-500 px-4">
         <svg className="w-12 h-12 mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 10.607z" />
         </svg>

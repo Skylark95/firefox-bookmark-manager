@@ -4,6 +4,8 @@ import type { Bookmark } from '../types'
 
 interface Props {
   onDataLoaded: (bookmarks: Bookmark[]) => void;
+  isDark: boolean;
+  onToggleDark: () => void;
 }
 
 const PROMPT_TEXT = `You are a data transformation assistant. I will give you raw JSON exported from Firefox via the About Sync extension. Your job is to transform it into a clean, flat array matching an exact target schema.
@@ -65,7 +67,7 @@ async function copyToClipboard(text: string): Promise<void> {
   }
 }
 
-export default function UploadView({ onDataLoaded }: Props) {
+export default function UploadView({ onDataLoaded, isDark, onToggleDark }: Props) {
   const [error, setError]           = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [copied, setCopied]         = useState(false)
@@ -105,13 +107,31 @@ export default function UploadView({ onDataLoaded }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 flex items-start justify-center pt-12 px-4 pb-12">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-start justify-center pt-12 px-4 pb-12">
       <div className="w-full max-w-2xl space-y-5">
 
         {/* Header */}
-        <div className="text-center space-y-1">
-          <h1 className="text-3xl font-bold text-slate-800">Firefox Bookmark Manager</h1>
-          <p className="text-slate-500 text-sm">Offline-only. Your data never leaves your browser.</p>
+        <div className="relative text-center space-y-1">
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Firefox Bookmark Manager</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Offline-only. Your data never leaves your browser.</p>
+          <button
+            onClick={onToggleDark}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="absolute top-0 right-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg
+                       text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800
+                       transition-colors"
+          >
+            {isDark ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* Dropzone */}
@@ -119,8 +139,8 @@ export default function UploadView({ onDataLoaded }: Props) {
           className={`
             border-2 border-dashed rounded-xl p-12 text-center cursor-pointer
             transition-colors duration-200
-            ${isDragging ? 'border-brand-500 bg-brand-50' : 'border-slate-300 hover:border-brand-500 hover:bg-slate-100'}
-            ${error ? 'border-red-400 bg-red-50' : ''}
+            ${isDragging ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-slate-800' : 'border-slate-300 hover:border-brand-500 hover:bg-slate-100 dark:border-slate-600 dark:hover:border-brand-400 dark:hover:bg-slate-800'}
+            ${error ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/20' : ''}
           `}
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
@@ -135,32 +155,32 @@ export default function UploadView({ onDataLoaded }: Props) {
             onChange={(e) => processFile(e.target.files?.[0])}
           />
           <div className="flex flex-col items-center gap-3">
-            <svg className="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-12 h-12 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
             <div>
-              <p className="font-semibold text-slate-700">Drop your JSON file here</p>
-              <p className="text-sm text-slate-500 mt-0.5">or click to browse</p>
+              <p className="font-semibold text-slate-700 dark:text-slate-300">Drop your JSON file here</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">or click to browse</p>
             </div>
           </div>
         </div>
 
         {/* Error message */}
         {error && (
-          <div className="bg-red-50 border border-red-300 rounded-lg px-4 py-3 text-sm text-red-700">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg px-4 py-3 text-sm text-red-700 dark:text-red-400">
             <strong>Validation error:</strong> {error}
           </div>
         )}
 
         {/* Collapsible extraction instructions */}
-        <details className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden group">
-          <summary className="px-5 py-4 font-semibold text-amber-900 cursor-pointer list-none flex items-center justify-between select-none min-h-[44px]">
+        <details className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl overflow-hidden group">
+          <summary className="px-5 py-4 font-semibold text-amber-900 dark:text-amber-200 cursor-pointer list-none flex items-center justify-between select-none min-h-[44px]">
             <span>How to export your Firefox tabs</span>
-            <svg className="w-4 h-4 text-amber-600 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4 text-amber-600 dark:text-amber-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
-          <div className="px-5 pb-5 text-sm text-amber-800 space-y-3">
+          <div className="px-5 pb-5 text-sm text-amber-800 dark:text-amber-300 space-y-3">
             <p>
               Just building upon Thorsten K. answer (to whom I am grateful for hinting at the right direction),
               on your desktop install the addon <strong>About Sync</strong>. This is the piece of software which
@@ -181,7 +201,7 @@ export default function UploadView({ onDataLoaded }: Props) {
               is to say it can store more than a single url. The only history entry that obviously matches the
               "title" is the first one.
             </p>
-            <p className="text-amber-600 text-xs">
+            <p className="text-amber-600 dark:text-amber-400 text-xs">
               Source:{' '}
               <a
                 href="https://stackoverflow.com/a/68309779"

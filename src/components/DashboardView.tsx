@@ -18,6 +18,8 @@ interface Props {
   onSortChange: (order: SortOrder) => void;
   onClearTags: () => void;
   onReset: () => void;
+  isDark: boolean;
+  onToggleDark: () => void;
 }
 
 export default function DashboardView({
@@ -25,6 +27,7 @@ export default function DashboardView({
   categories, allTags,
   activeCategory, activeTags, searchQuery, sortOrder,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+  isDark, onToggleDark,
 }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -43,19 +46,20 @@ export default function DashboardView({
     totalCount,
     filteredCount: filteredBookmarks.length,
     onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+    isDark, onToggleDark,
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-900">
 
       {/* Mobile sticky top bar */}
-      <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 px-3 py-2 flex items-center gap-2">
+      <header className="lg:hidden sticky top-0 z-30 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 py-2 flex items-center gap-2">
         <button
           onClick={() => setDrawerOpen(true)}
           aria-label="Open filters"
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors shrink-0"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
         >
-          <svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -64,12 +68,30 @@ export default function DashboardView({
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
           placeholder="Search bookmarks…"
-          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm
+          className="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400 px-3 py-2 text-sm
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
         />
-        <span className="text-xs text-slate-500 shrink-0 whitespace-nowrap">
+        <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0 whitespace-nowrap">
           {filteredBookmarks.length}/{totalCount}
         </span>
+        <button
+          onClick={onToggleDark}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg
+                     text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700
+                     transition-colors shrink-0"
+        >
+          {isDark ? (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+          )}
+        </button>
       </header>
 
       <div className="lg:flex lg:h-screen">
@@ -102,9 +124,9 @@ export default function DashboardView({
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Close filters"
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-white shadow hover:bg-slate-50 transition-colors"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 shadow hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
-                <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
