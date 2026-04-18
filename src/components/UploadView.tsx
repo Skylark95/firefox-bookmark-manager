@@ -182,27 +182,25 @@ export default function UploadView({ onDataLoaded, isDark, onToggleDark }: Props
           </summary>
           <div className="px-5 pb-5 text-sm text-amber-800 dark:text-amber-300 space-y-3">
             <p>
-              Just building upon Thorsten K. answer (to whom I am grateful for hinting at the right direction),
-              on your desktop install the addon <strong>About Sync</strong>. This is the piece of software which
-              exposes the info you want. It is not part of vanilla firefox, it is in an addon which was developed
-              for developers. From there follow Thorsten K.'s answer steps:
+              Install the{' '}
+              <a
+                href="https://addons.mozilla.org/en-US/firefox/addon/about-sync/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-amber-900 dark:hover:text-amber-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                About Sync
+              </a>
+              {' '}extension, then:
             </p>
             <ol className="list-decimal list-inside space-y-1.5">
-              <li>open "about:sync" in a new tab, you should see the list "Collections"</li>
-              <li>scroll down to "tabs"</li>
-              <li>click on "Record Editor (server)"</li>
-              <li>in "Select record" select the record of the synced device of which you want want to export the tabs. If you have assigned client names to your devices, it's easy to identify them.</li>
-              <li>in the text box below, the list of all entries (one for each synced tab) is shown.</li>
-              <li>copy and paste this text into a text editor, and post-process it with text-search-and-replace as needed.</li>
+              <li>Open <code>about:sync</code> in a new tab</li>
+              <li>Scroll to "tabs" → click "Record Editor (server)"</li>
+              <li>Select your device in "Select record"</li>
+              <li>Copy the JSON from the text box</li>
             </ol>
-            <p>
-              The content is in json format (it is not terribly complex even for non-developers) and the info you
-              want should be in the fields "title" and "urlHistory". Just beware that the latter is an array, which
-              is to say it can store more than a single url. The only history entry that obviously matches the
-              "title" is the first one.
-            </p>
             <p className="text-amber-600 dark:text-amber-400 text-xs">
-              Source:{' '}
               <a
                 href="https://stackoverflow.com/a/68309779"
                 target="_blank"
@@ -210,7 +208,7 @@ export default function UploadView({ onDataLoaded, isDark, onToggleDark }: Props
                 className="underline hover:text-amber-800"
                 onClick={(e) => e.stopPropagation()}
               >
-                Stack Overflow answer
+                Stack Overflow
               </a>
             </p>
           </div>
