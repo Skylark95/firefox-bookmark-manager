@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import { formatDate } from '../utils/formatDate'
 import { getHostname } from '../utils/getHostname'
+import type { Bookmark } from '../types'
 
-async function copyToClipboard(text) {
+interface Props {
+  bookmark: Bookmark;
+  onTagClick: (tag: string) => void;
+  onCategoryChange: (category: string) => void;
+}
+
+async function copyToClipboard(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text)
   } catch {
@@ -17,11 +24,11 @@ async function copyToClipboard(text) {
   }
 }
 
-export default function BookmarkCard({ bookmark, onTagClick, onCategoryChange }) {
+export default function BookmarkCard({ bookmark, onTagClick, onCategoryChange }: Props) {
   const { title, url, lastUsed, category, tags } = bookmark
   const [urlCopied, setUrlCopied] = useState(false)
 
-  async function handleCopyUrl(e) {
+  async function handleCopyUrl(e: React.MouseEvent): Promise<void> {
     e.preventDefault()
     e.stopPropagation()
     await copyToClipboard(url)

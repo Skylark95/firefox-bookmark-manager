@@ -67,13 +67,14 @@ The app expects a JSON array. Each item must have:
 
 ## Development
 
-Uses [bun](https://bun.sh).
+Uses [bun](https://bun.sh). Built with React, Vite, Tailwind CSS, and TypeScript (strict mode).
 
 ```bash
 bun install
 bun run dev        # http://localhost:5173
 bun run build      # production build → dist/
 bun run preview    # preview the build locally
+bun run type-check # TypeScript type checking
 bun run test       # run test suite
 bun run test:watch # run tests in watch mode
 ```

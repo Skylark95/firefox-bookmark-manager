@@ -30,7 +30,7 @@ describe('validateSchema', () => {
   it.each(['id', 'title', 'url', 'lastUsed', 'category', 'tags'])(
     'throws when required field "%s" is missing',
     (field) => {
-      const item = { ...validBookmark }
+      const item = { ...validBookmark } as Record<string, unknown>
       delete item[field]
       expect(() => validateSchema([item])).toThrow(`missing required field: "${field}"`)
     }

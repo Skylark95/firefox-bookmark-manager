@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { filterBookmarks } from '../filterBookmarks'
+import type { Bookmark, FilterState } from '../../types'
 
-const bm = (overrides) => ({
+const bm = (overrides: Partial<Bookmark>): Bookmark => ({
   id: 'bm_0001',
   title: 'Default Title',
   url: 'https://example.com',
@@ -11,13 +12,13 @@ const bm = (overrides) => ({
   ...overrides,
 })
 
-const FIXTURES = [
+const FIXTURES: Bookmark[] = [
   bm({ id: '1', title: 'Alpha Article', url: 'https://alpha.com', lastUsed: 3000, category: 'News', tags: ['politics', 'world'] }),
   bm({ id: '2', title: 'Beta Tool',    url: 'https://beta.dev',  lastUsed: 1000, category: 'Tech', tags: ['tools', 'dev'] }),
   bm({ id: '3', title: 'Gamma Guide',  url: 'https://gamma.io',  lastUsed: 2000, category: 'Tech', tags: ['dev', 'reference'] }),
 ]
 
-const defaults = { activeCategory: null, activeTags: [], searchQuery: '', sortOrder: 'newest' }
+const defaults: FilterState = { activeCategory: null, activeTags: [], searchQuery: '', sortOrder: 'newest' }
 
 describe('filterBookmarks', () => {
   it('returns all bookmarks when no filters are applied', () => {

@@ -1,4 +1,6 @@
-export function filterBookmarks(bookmarks, { activeCategory, activeTags, searchQuery, sortOrder }) {
+import type { Bookmark, FilterState } from '../types'
+
+export function filterBookmarks(bookmarks: Bookmark[], { activeCategory, activeTags, searchQuery, sortOrder }: FilterState): Bookmark[] {
   const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean)
   return bookmarks
     .filter(bm => {

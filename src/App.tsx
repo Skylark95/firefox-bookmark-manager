@@ -2,38 +2,39 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import UploadView from './components/UploadView'
 import DashboardView from './components/DashboardView'
 import { filterBookmarks } from './utils/filterBookmarks'
+import type { Bookmark, SortOrder, FilterState } from './types'
 
 const STORAGE_KEY = 'offline_bookmarks'
 const FILTERS_KEY = 'offline_bookmarks_filters'
 
-function readStorage(key) {
+function readStorage(key: string): string | null {
   try { return localStorage.getItem(key) } catch { return null }
 }
 
-function writeStorage(key, value) {
+function writeStorage(key: string, value: string): void {
   try { localStorage.setItem(key, value) } catch {}
 }
 
-function removeStorage(key) {
+function removeStorage(key: string): void {
   try { localStorage.removeItem(key) } catch {}
 }
 
 export default function App() {
-  const [bookmarks, setBookmarks]             = useState([])
+  const [bookmarks, setBookmarks]             = useState<Bookmark[]>([])
   const [isLoaded, setIsLoaded]               = useState(false)
-  const [activeCategory, setActiveCategory]   = useState(null)
-  const [activeTags, setActiveTags]           = useState([])
+  const [activeCategory, setActiveCategory]   = useState<string | null>(null)
+  const [activeTags, setActiveTags]           = useState<string[]>([])
   const [searchQuery, setSearchQuery]         = useState('')
-  const [sortOrder, setSortOrder]             = useState('newest')
+  const [sortOrder, setSortOrder]             = useState<SortOrder>('newest')
 
   useEffect(() => {
     const raw = readStorage(STORAGE_KEY)
     if (raw) {
       try {
-        const parsed = JSON.parse(raw)
+        const parsed = JSON.parse(raw) as Bookmark[]
         setBookmarks(parsed)
 
-        const savedFilters = JSON.parse(readStorage(FILTERS_KEY) || 'null')
+        const savedFilters = JSON.parse(readStorage(FILTERS_KEY) ?? 'null') as FilterState | null
         if (savedFilters) {
           setActiveCategory(savedFilters.activeCategory ?? null)
           setActiveTags(savedFilters.activeTags ?? [])
@@ -54,13 +55,13 @@ export default function App() {
     writeStorage(FILTERS_KEY, JSON.stringify({ activeCategory, activeTags, searchQuery, sortOrder }))
   }, [activeCategory, activeTags, searchQuery, sortOrder, isLoaded])
 
-  function handleDataLoaded(validatedData) {
+  function handleDataLoaded(validatedData: Bookmark[]): void {
     writeStorage(STORAGE_KEY, JSON.stringify(validatedData))
     setBookmarks(validatedData)
     setIsLoaded(true)
   }
 
-  function handleReset() {
+  function handleReset(): void {
     removeStorage(STORAGE_KEY)
     removeStorage(FILTERS_KEY)
     setBookmarks([])
@@ -71,7 +72,7 @@ export default function App() {
     setSortOrder('newest')
   }
 
-  const handleTagClick = useCallback((tag) => {
+  const handleTagClick = useCallback((tag: string) => {
     setActiveTags(prev =>
       prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     )
@@ -79,7 +80,7 @@ export default function App() {
 
   const handleClearTags = useCallback(() => setActiveTags([]), [])
 
-  const handleCategoryChange = useCallback((cat) => {
+  const handleCategoryChange = useCallback((cat: string | null) => {
     setActiveCategory(prev => prev === cat ? null : cat)
   }, [])
 

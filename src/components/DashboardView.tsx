@@ -1,18 +1,36 @@
 import { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 import BookmarkGrid from './BookmarkGrid'
+import type { Bookmark, SortOrder } from '../types'
+
+interface Props {
+  filteredBookmarks: Bookmark[];
+  totalCount: number;
+  categories: string[];
+  allTags: string[];
+  activeCategory: string | null;
+  activeTags: string[];
+  searchQuery: string;
+  sortOrder: SortOrder;
+  onCategoryChange: (category: string | null) => void;
+  onTagClick: (tag: string) => void;
+  onSearchChange: (query: string) => void;
+  onSortChange: (order: SortOrder) => void;
+  onClearTags: () => void;
+  onReset: () => void;
+}
 
 export default function DashboardView({
   filteredBookmarks, totalCount,
   categories, allTags,
   activeCategory, activeTags, searchQuery, sortOrder,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
-}) {
+}: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
     if (!drawerOpen) return
-    function handleKey(e) {
+    function handleKey(e: KeyboardEvent): void {
       if (e.key === 'Escape') setDrawerOpen(false)
     }
     document.addEventListener('keydown', handleKey)

@@ -1,6 +1,13 @@
 import BookmarkCard from './BookmarkCard'
+import type { Bookmark } from '../types'
 
-export default function BookmarkGrid({ bookmarks, onTagClick, onCategoryChange }) {
+interface Props {
+  bookmarks: Bookmark[];
+  onTagClick: (tag: string) => void;
+  onCategoryChange: (category: string) => void;
+}
+
+export default function BookmarkGrid({ bookmarks, onTagClick, onCategoryChange }: Props) {
   if (bookmarks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-slate-400 px-4">

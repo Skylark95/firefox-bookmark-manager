@@ -1,5 +1,10 @@
 import { useState, useRef } from 'react'
 import { validateSchema } from '../utils/validateSchema'
+import type { Bookmark } from '../types'
+
+interface Props {
+  onDataLoaded: (bookmarks: Bookmark[]) => void;
+}
 
 const PROMPT_TEXT = `You are a data transformation assistant. I will give you raw JSON exported from Firefox via the About Sync extension. Your job is to transform it into a clean, flat array matching an exact target schema.
 
@@ -45,7 +50,7 @@ Output ONLY a valid JSON array — no markdown, no explanation, no code fences. 
 [Paste your raw Firefox JSON here]`
 
 
-async function copyToClipboard(text) {
+async function copyToClipboard(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text)
   } catch {
@@ -60,13 +65,13 @@ async function copyToClipboard(text) {
   }
 }
 
-export default function UploadView({ onDataLoaded }) {
-  const [error, setError]           = useState(null)
+export default function UploadView({ onDataLoaded }: Props) {
+  const [error, setError]           = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [copied, setCopied]         = useState(false)
-  const inputRef = useRef(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  function processFile(file) {
+  function processFile(file: File | null | undefined): void {
     if (!file) return
     if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
       setError('Please upload a valid .json file.')
@@ -75,24 +80,25 @@ export default function UploadView({ onDataLoaded }) {
     setError(null)
     const reader = new FileReader()
     reader.onload = (e) => {
+      if (!e.target) return
       try {
-        const data = JSON.parse(e.target.result)
+        const data: unknown = JSON.parse(e.target.result as string)
         validateSchema(data)
         onDataLoaded(data)
       } catch (err) {
-        setError(err.message)
+        setError(err instanceof Error ? err.message : String(err))
       }
     }
     reader.readAsText(file)
   }
 
-  function handleDrop(e) {
+  function handleDrop(e: React.DragEvent<HTMLDivElement>): void {
     e.preventDefault()
     setIsDragging(false)
     processFile(e.dataTransfer.files[0])
   }
 
-  async function handleCopy() {
+  async function handleCopy(): Promise<void> {
     await copyToClipboard(PROMPT_TEXT)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -126,7 +132,7 @@ export default function UploadView({ onDataLoaded }) {
             type="file"
             accept=".json"
             className="hidden"
-            onChange={(e) => processFile(e.target.files[0])}
+            onChange={(e) => processFile(e.target.files?.[0])}
           />
           <div className="flex flex-col items-center gap-3">
             <svg className="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

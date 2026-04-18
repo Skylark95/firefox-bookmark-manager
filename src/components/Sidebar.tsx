@@ -1,8 +1,27 @@
+import type { SortOrder } from '../types'
+
+interface Props {
+  categories: string[];
+  allTags: string[];
+  activeCategory: string | null;
+  activeTags: string[];
+  searchQuery: string;
+  sortOrder: SortOrder;
+  totalCount: number;
+  filteredCount: number;
+  onCategoryChange: (category: string | null) => void;
+  onTagClick: (tag: string) => void;
+  onSearchChange: (query: string) => void;
+  onSortChange: (order: SortOrder) => void;
+  onClearTags: () => void;
+  onReset: () => void;
+}
+
 export default function Sidebar({
   categories, allTags,
   activeCategory, activeTags, searchQuery, sortOrder, totalCount, filteredCount,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
-}) {
+}: Props) {
   return (
     <div className="flex flex-col h-full bg-white border-r border-slate-200">
       {/* Header */}
@@ -33,7 +52,7 @@ export default function Sidebar({
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Sort</h3>
           <select
             value={sortOrder}
-            onChange={e => onSortChange(e.target.value)}
+            onChange={e => onSortChange(e.target.value as SortOrder)}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white
                        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
                        min-h-[44px]"
