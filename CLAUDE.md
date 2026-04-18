@@ -11,9 +11,13 @@ bun run dev        # Start dev server at http://localhost:5173
 bun run build      # Production build to dist/
 bun run preview    # Preview the production build locally
 bun install        # Install dependencies
+bun run test       # Run test suite once (vitest)
+bun run test:watch # Run tests in watch mode
 ```
 
-No test suite or linter is configured in V1.
+To run a single test file: `bunx vitest run src/utils/__tests__/filterBookmarks.test.js`
+
+No linter is configured.
 
 ## Deployment
 
@@ -33,7 +37,7 @@ This is a fully client-side React + Vite + Tailwind CSS app — no backend, no r
 ### Data flow
 
 1. User uploads a processed `.json` file via `UploadView`
-2. `validateSchema()` in `UploadView.jsx` checks the array against the required schema
+2. `validateSchema()` in `src/utils/validateSchema.js` checks the array against the required schema
 3. On success, `App.handleDataLoaded()` writes to `localStorage` (`offline_bookmarks`) and flips `isLoaded`
 4. Filter state (`activeCategory`, `activeTags`, `searchQuery`, `sortOrder`) is persisted separately under `offline_bookmarks_filters`
 5. `filteredBookmarks`, `categories`, and `allTags` are all derived via `useMemo` — never stored in state
@@ -54,7 +58,18 @@ The raw Firefox export (from the About Sync extension) does **not** match this s
 | `offline_bookmarks` | Full bookmark array (target schema) |
 | `offline_bookmarks_filters` | `{ activeCategory, activeTags, searchQuery, sortOrder }` |
 
-### Filtering logic (in `App.jsx` `useMemo`)
+### Pure utility functions (`src/utils/`)
+
+Business logic is extracted to pure functions for testability:
+
+- `validateSchema(data)` — throws on invalid bookmark array
+- `filterBookmarks(bookmarks, { activeCategory, activeTags, searchQuery, sortOrder })` — filters and sorts; called from `App.jsx` useMemo
+- `formatDate(unixSeconds)` — formats Unix timestamp to `"Jan 15, 2020"` style
+- `getHostname(url)` — extracts hostname with fallback to full URL on parse error
+
+Tests live in `src/utils/__tests__/`.
+
+### Filtering logic
 
 1. `activeCategory` — exact match on `category` field
 2. `activeTags` — bookmark must contain **all** active tags

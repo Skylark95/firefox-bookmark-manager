@@ -1,14 +1,6 @@
 import { useState } from 'react'
-
-function formatDate(unixSeconds) {
-  return new Date(unixSeconds * 1000).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric'
-  })
-}
-
-function getHostname(url) {
-  try { return new URL(url).hostname } catch { return url }
-}
+import { formatDate } from '../utils/formatDate'
+import { getHostname } from '../utils/getHostname'
 
 async function copyToClipboard(text) {
   try {

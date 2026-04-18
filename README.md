@@ -71,9 +71,11 @@ Uses [bun](https://bun.sh).
 
 ```bash
 bun install
-bun run dev      # http://localhost:5173
-bun run build    # production build → dist/
-bun run preview  # preview the build locally
+bun run dev        # http://localhost:5173
+bun run build      # production build → dist/
+bun run preview    # preview the build locally
+bun run test       # run test suite
+bun run test:watch # run tests in watch mode
 ```
 
 ## Deployment
