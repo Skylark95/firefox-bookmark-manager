@@ -10,11 +10,14 @@ Use `bun` (not `npm`) for all package management and script execution.
 bun run dev        # Start dev server at http://localhost:5173
 bun run build      # Production build to dist/
 bun run preview    # Preview the production build locally
-bun run deploy     # Build and deploy to GitHub Pages (requires gh-pages setup)
 bun install        # Install dependencies
 ```
 
 No test suite or linter is configured in V1.
+
+## Deployment
+
+Pushes to `main` deploy automatically via `.github/workflows/deploy.yml` (GitHub Actions → GitHub Pages). No manual deploy step needed. Requires GitHub Pages source set to **GitHub Actions** in repo settings.
 
 ## Architecture
 
