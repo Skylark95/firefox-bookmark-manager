@@ -5,6 +5,7 @@ export interface Bookmark {
   lastUsed: number;
   category: string;
   tags: string[];
+  archived?: boolean;
 }
 
 export type SortOrder = 'newest' | 'oldest' | 'alpha';

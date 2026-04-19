@@ -5,9 +5,13 @@ interface Props {
   bookmarks: Bookmark[];
   onTagClick: (tag: string) => void;
   onCategoryChange: (category: string) => void;
+  onArchive: (id: string) => void;
+  onDelete: (id: string) => void;
+  onRestore?: (id: string) => void;
+  isArchivedView?: boolean;
 }
 
-export default function BookmarkGrid({ bookmarks, onTagClick, onCategoryChange }: Props) {
+export default function BookmarkGrid({ bookmarks, onTagClick, onCategoryChange, onArchive, onDelete, onRestore, isArchivedView }: Props) {
   if (bookmarks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-slate-400 dark:text-slate-500 px-4">
@@ -29,6 +33,10 @@ export default function BookmarkGrid({ bookmarks, onTagClick, onCategoryChange }
             bookmark={bookmark}
             onTagClick={onTagClick}
             onCategoryChange={onCategoryChange}
+            onArchive={onArchive}
+            onDelete={onDelete}
+            onRestore={onRestore}
+            isArchived={isArchivedView}
           />
         ))}
       </div>

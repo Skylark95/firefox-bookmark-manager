@@ -39,7 +39,7 @@ This is a fully client-side React + Vite + Tailwind CSS app written in TypeScrip
 
 All domain types are defined here and imported across the codebase:
 
-- `Bookmark` — the core data shape (`id`, `title`, `url`, `lastUsed`, `category`, `tags`)
+- `Bookmark` — the core data shape (`id`, `title`, `url`, `lastUsed`, `category`, `tags`, `archived?`)
 - `SortOrder` — `'newest' | 'oldest' | 'alpha'`
 - `FilterState` — `{ activeCategory, activeTags, searchQuery, sortOrder }`
 
@@ -49,7 +49,7 @@ All domain types are defined here and imported across the codebase:
 2. `validateSchema()` in `src/utils/validateSchema.ts` checks the array at runtime using an `asserts data is Bookmark[]` type guard — after the call TypeScript narrows the type
 3. On success, `App.handleDataLoaded()` writes to `localStorage` (`offline_bookmarks`) and flips `isLoaded`
 4. Filter state (`activeCategory`, `activeTags`, `searchQuery`, `sortOrder`) is persisted separately under `offline_bookmarks_filters`
-5. `filteredBookmarks`, `categories`, and `allTags` are all derived via `useMemo` — never stored in state
+5. `viewBookmarks` is derived first (active vs. archived), then `filteredBookmarks`, `categories`, and `allTags` are all derived from `viewBookmarks` via `useMemo` — never stored in state
 
 ### Required data schema
 
@@ -57,6 +57,8 @@ The app expects a JSON array where each item matches the `Bookmark` interface in
 ```
 { id: string, title: string, url: string, lastUsed: number (Unix seconds), category: string, tags: string[] }
 ```
+
+`archived` is optional — missing or `undefined` is treated as `false`. On load, all bookmarks are migrated to explicitly set `archived: false` if the field is absent.
 
 The raw Firefox export (from the About Sync extension) does **not** match this schema — it must be transformed via an LLM using the prompt displayed in `UploadView`.
 
@@ -90,12 +92,24 @@ Tests live in `src/utils/__tests__/`.
 
 Tailwind's `darkMode: 'class'` strategy is used — the `dark` class on `<html>` activates all `dark:` variants. The `useDarkMode` hook in `App.tsx` initialises from `localStorage` (`theme` key), falls back to `prefers-color-scheme`, and toggles the class via `document.documentElement.classList`. `isDark` and `onToggleDark` are threaded as props into both views and down into `Sidebar`. Toggle buttons (sun/moon SVG) appear in the `UploadView` header, the `DashboardView` mobile header, and the `Sidebar` desktop header. The `bg-slate-800` AI prompt block in `UploadView` is intentionally dark in both modes — do not add `dark:` overrides to it.
 
+### Archive and delete
+
+`App.tsx` owns `currentView: 'active' | 'archived'` (not persisted). `viewBookmarks` is pre-filtered from `bookmarks` by this view before being passed to `filterBookmarks`.
+
+- **Archive** — sets `archived: true`, shows a 5-second undo toast (`UndoToast`). Undo restores the bookmark immediately.
+- **Delete** — opens `ConfirmModal`; on confirm, removes the bookmark permanently from the array. No undo.
+- **Restore** — sets `archived: false`, available only in the archived view.
+
+The view toggle ("Bookmarks / Archived") appears above the grid in `DashboardView`. `Sidebar` categories and tags reflect only the bookmarks in the current view.
+
 ### Component responsibilities
 
-- **`DashboardView`** — layout only; owns `drawerOpen` (mobile drawer state); passes all filter props plus `isDark`/`onToggleDark` to `Sidebar` via a spread object; renders the dark mode toggle in the mobile header
-- **`Sidebar`** — search input, sort select, category buttons, tag cloud, "Load new file" button, dark mode toggle in header; sort `onChange` casts `e.target.value as SortOrder`
-- **`BookmarkGrid`** — renders cards or empty state
-- **`BookmarkCard`** — clicking category badge calls `onCategoryChange`; clicking tag badge calls `onTagClick`; copy URL button with clipboard fallback
+- **`DashboardView`** — layout only; owns `drawerOpen` (mobile drawer state); renders the view toggle, `UndoToast`, and `ConfirmModal`; passes all filter props plus `isDark`/`onToggleDark` to `Sidebar` via a spread object
+- **`Sidebar`** — search input, sort select, category buttons, tag cloud, "Load new file" button, dark mode toggle in header; sort `onChange` casts `e.target.value as SortOrder`; header label switches between "Showing X of Y" and "X archived" based on `currentView`
+- **`BookmarkGrid`** — renders cards or empty state; passes archive/delete/restore handlers to each card
+- **`BookmarkCard`** — clicking category badge calls `onCategoryChange`; clicking tag badge calls `onTagClick`; copy URL button with clipboard fallback; always-visible Archive + Delete buttons (active view) or Restore + Delete buttons (archived view)
+- **`UndoToast`** — fixed bottom-center toast with 5s auto-dismiss; timer managed in `App.tsx` via `useRef`
+- **`ConfirmModal`** — centered overlay modal; dismisses on backdrop click or Cancel
 
 ### TypeScript notes
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import UploadView from './components/UploadView'
 import DashboardView from './components/DashboardView'
 import { filterBookmarks } from './utils/filterBookmarks'
@@ -36,6 +36,11 @@ function removeStorage(key: string): void {
   try { localStorage.removeItem(key) } catch {}
 }
 
+interface ToastState {
+  message: string;
+  onUndo: () => void;
+}
+
 export default function App() {
   const [isDark, toggleDark] = useDarkMode()
   const [bookmarks, setBookmarks]             = useState<Bookmark[]>([])
@@ -44,13 +49,19 @@ export default function App() {
   const [activeTags, setActiveTags]           = useState<string[]>([])
   const [searchQuery, setSearchQuery]         = useState('')
   const [sortOrder, setSortOrder]             = useState<SortOrder>('newest')
+  const [currentView, setCurrentView]         = useState<'active' | 'archived'>('active')
+  const [toast, setToast]                     = useState<ToastState | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const toastTimerRef                         = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const raw = readStorage(STORAGE_KEY)
     if (raw) {
       try {
         const parsed = JSON.parse(raw) as Bookmark[]
-        setBookmarks(parsed)
+        // Migration: ensure all bookmarks have the archived field
+        const migrated = parsed.map(bm => ({ archived: false as boolean, ...bm }))
+        setBookmarks(migrated)
 
         const savedFilters = JSON.parse(readStorage(FILTERS_KEY) ?? 'null') as FilterState | null
         if (savedFilters) {
@@ -73,9 +84,15 @@ export default function App() {
     writeStorage(FILTERS_KEY, JSON.stringify({ activeCategory, activeTags, searchQuery, sortOrder }))
   }, [activeCategory, activeTags, searchQuery, sortOrder, isLoaded])
 
+  useEffect(() => {
+    if (!isLoaded) return
+    writeStorage(STORAGE_KEY, JSON.stringify(bookmarks))
+  }, [bookmarks, isLoaded])
+
   function handleDataLoaded(validatedData: Bookmark[]): void {
-    writeStorage(STORAGE_KEY, JSON.stringify(validatedData))
-    setBookmarks(validatedData)
+    const withArchived = validatedData.map(bm => ({ archived: false as boolean, ...bm }))
+    writeStorage(STORAGE_KEY, JSON.stringify(withArchived))
+    setBookmarks(withArchived)
     setIsLoaded(true)
   }
 
@@ -88,6 +105,45 @@ export default function App() {
     setActiveTags([])
     setSearchQuery('')
     setSortOrder('newest')
+    setCurrentView('active')
+    dismissToast()
+  }
+
+  function showToast(message: string, onUndo: () => void): void {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    setToast({ message, onUndo })
+    toastTimerRef.current = setTimeout(() => setToast(null), 5000)
+  }
+
+  function dismissToast(): void {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    setToast(null)
+  }
+
+  function handleArchive(id: string): void {
+    setBookmarks(prev => prev.map(bm => bm.id === id ? { ...bm, archived: true } : bm))
+    showToast('Bookmark archived', () => {
+      setBookmarks(prev => prev.map(bm => bm.id === id ? { ...bm, archived: false } : bm))
+      dismissToast()
+    })
+  }
+
+  function handleRestore(id: string): void {
+    setBookmarks(prev => prev.map(bm => bm.id === id ? { ...bm, archived: false } : bm))
+  }
+
+  function handleDelete(id: string): void {
+    setConfirmDeleteId(id)
+  }
+
+  function handleDeleteConfirm(): void {
+    if (!confirmDeleteId) return
+    setBookmarks(prev => prev.filter(bm => bm.id !== confirmDeleteId))
+    setConfirmDeleteId(null)
+  }
+
+  function handleDeleteCancel(): void {
+    setConfirmDeleteId(null)
   }
 
   const handleTagClick = useCallback((tag: string) => {
@@ -102,18 +158,33 @@ export default function App() {
     setActiveCategory(prev => prev === cat ? null : cat)
   }, [])
 
+  const viewBookmarks = useMemo(
+    () => bookmarks.filter(b => currentView === 'archived' ? b.archived : !b.archived),
+    [bookmarks, currentView]
+  )
+
   const filteredBookmarks = useMemo(
-    () => filterBookmarks(bookmarks, { activeCategory, activeTags, searchQuery, sortOrder }),
-    [bookmarks, activeCategory, activeTags, searchQuery, sortOrder]
+    () => filterBookmarks(viewBookmarks, { activeCategory, activeTags, searchQuery, sortOrder }),
+    [viewBookmarks, activeCategory, activeTags, searchQuery, sortOrder]
   )
 
   const categories = useMemo(
-    () => [...new Set(bookmarks.map(b => b.category))].sort(),
-    [bookmarks]
+    () => [...new Set(viewBookmarks.map(b => b.category))].sort(),
+    [viewBookmarks]
   )
 
   const allTags = useMemo(
-    () => [...new Set(bookmarks.flatMap(b => b.tags))].sort(),
+    () => [...new Set(viewBookmarks.flatMap(b => b.tags))].sort(),
+    [viewBookmarks]
+  )
+
+  const activeCount = useMemo(
+    () => bookmarks.filter(b => !b.archived).length,
+    [bookmarks]
+  )
+
+  const archivedCount = useMemo(
+    () => bookmarks.filter(b => b.archived).length,
     [bookmarks]
   )
 
@@ -124,19 +195,30 @@ export default function App() {
   return (
     <DashboardView
       filteredBookmarks={filteredBookmarks}
-      totalCount={bookmarks.length}
+      totalCount={activeCount}
+      archivedCount={archivedCount}
       categories={categories}
       allTags={allTags}
       activeCategory={activeCategory}
       activeTags={activeTags}
       searchQuery={searchQuery}
       sortOrder={sortOrder}
+      currentView={currentView}
+      toast={toast}
+      confirmDeleteId={confirmDeleteId}
       onCategoryChange={handleCategoryChange}
       onTagClick={handleTagClick}
       onSearchChange={setSearchQuery}
       onSortChange={setSortOrder}
       onClearTags={handleClearTags}
       onReset={handleReset}
+      onViewChange={setCurrentView}
+      onArchive={handleArchive}
+      onDelete={handleDelete}
+      onRestore={handleRestore}
+      onToastDismiss={dismissToast}
+      onDeleteConfirm={handleDeleteConfirm}
+      onDeleteCancel={handleDeleteCancel}
       isDark={isDark}
       onToggleDark={toggleDark}
     />

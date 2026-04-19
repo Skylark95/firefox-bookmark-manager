@@ -1,32 +1,52 @@
 import { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 import BookmarkGrid from './BookmarkGrid'
+import UndoToast from './UndoToast'
+import ConfirmModal from './ConfirmModal'
 import type { Bookmark, SortOrder } from '../types'
+
+interface ToastState {
+  message: string;
+  onUndo: () => void;
+}
 
 interface Props {
   filteredBookmarks: Bookmark[];
   totalCount: number;
+  archivedCount: number;
   categories: string[];
   allTags: string[];
   activeCategory: string | null;
   activeTags: string[];
   searchQuery: string;
   sortOrder: SortOrder;
+  currentView: 'active' | 'archived';
+  toast: ToastState | null;
+  confirmDeleteId: string | null;
   onCategoryChange: (category: string | null) => void;
   onTagClick: (tag: string) => void;
   onSearchChange: (query: string) => void;
   onSortChange: (order: SortOrder) => void;
   onClearTags: () => void;
   onReset: () => void;
+  onViewChange: (view: 'active' | 'archived') => void;
+  onArchive: (id: string) => void;
+  onDelete: (id: string) => void;
+  onRestore: (id: string) => void;
+  onToastDismiss: () => void;
+  onDeleteConfirm: () => void;
+  onDeleteCancel: () => void;
   isDark: boolean;
   onToggleDark: () => void;
 }
 
 export default function DashboardView({
-  filteredBookmarks, totalCount,
+  filteredBookmarks, totalCount, archivedCount,
   categories, allTags,
   activeCategory, activeTags, searchQuery, sortOrder,
+  currentView, toast, confirmDeleteId,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+  onViewChange, onArchive, onDelete, onRestore, onToastDismiss, onDeleteConfirm, onDeleteCancel,
   isDark, onToggleDark,
 }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -45,6 +65,7 @@ export default function DashboardView({
     activeCategory, activeTags, searchQuery, sortOrder,
     totalCount,
     filteredCount: filteredBookmarks.length,
+    currentView,
     onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
     isDark, onToggleDark,
   }
@@ -103,10 +124,37 @@ export default function DashboardView({
 
         {/* Main content */}
         <main className="flex-1 lg:overflow-y-auto">
+          {/* View toggle */}
+          <div className="px-4 pt-4 lg:px-6 lg:pt-6 flex gap-2">
+            <button
+              onClick={() => onViewChange('active')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                currentView === 'active'
+                  ? 'bg-brand-600 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              Bookmarks ({totalCount})
+            </button>
+            <button
+              onClick={() => onViewChange('archived')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                currentView === 'archived'
+                  ? 'bg-amber-500 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              Archived ({archivedCount})
+            </button>
+          </div>
           <BookmarkGrid
             bookmarks={filteredBookmarks}
             onTagClick={onTagClick}
             onCategoryChange={onCategoryChange}
+            onArchive={onArchive}
+            onDelete={onDelete}
+            onRestore={onRestore}
+            isArchivedView={currentView === 'archived'}
           />
         </main>
       </div>
@@ -136,6 +184,23 @@ export default function DashboardView({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Undo toast */}
+      {toast && (
+        <UndoToast
+          message={toast.message}
+          onUndo={toast.onUndo}
+          onDismiss={onToastDismiss}
+        />
+      )}
+
+      {/* Delete confirmation modal */}
+      {confirmDeleteId && (
+        <ConfirmModal
+          onConfirm={onDeleteConfirm}
+          onCancel={onDeleteCancel}
+        />
       )}
     </div>
   )

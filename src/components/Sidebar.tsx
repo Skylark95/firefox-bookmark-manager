@@ -9,6 +9,7 @@ interface Props {
   sortOrder: SortOrder;
   totalCount: number;
   filteredCount: number;
+  currentView: 'active' | 'archived';
   onCategoryChange: (category: string | null) => void;
   onTagClick: (tag: string) => void;
   onSearchChange: (query: string) => void;
@@ -21,7 +22,7 @@ interface Props {
 
 export default function Sidebar({
   categories, allTags,
-  activeCategory, activeTags, searchQuery, sortOrder, totalCount, filteredCount,
+  activeCategory, activeTags, searchQuery, sortOrder, totalCount, filteredCount, currentView,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
   isDark, onToggleDark,
 }: Props) {
@@ -32,7 +33,9 @@ export default function Sidebar({
         <div>
           <h1 className="text-base font-bold text-slate-800 dark:text-slate-100">Bookmark Manager</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Showing {filteredCount} of {totalCount}
+            {currentView === 'archived'
+              ? `${filteredCount} archived`
+              : `Showing ${filteredCount} of ${totalCount}`}
           </p>
         </div>
         <button
