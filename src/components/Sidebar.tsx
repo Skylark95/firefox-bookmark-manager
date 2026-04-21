@@ -1,4 +1,6 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { copyToClipboard } from '../utils/clipboard'
+import { PROMPT_TEXT } from '../constants'
 import type { SortOrder } from '../types'
 
 interface Props {
@@ -30,6 +32,13 @@ export default function Sidebar({
   isDark, onToggleDark,
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [promptCopied, setPromptCopied] = useState(false)
+
+  async function handleCopyPrompt() {
+    await copyToClipboard(PROMPT_TEXT)
+    setPromptCopied(true)
+    setTimeout(() => setPromptCopied(false), 2000)
+  }
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
@@ -175,6 +184,13 @@ export default function Sidebar({
                      border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
         >
           Load new file
+        </button>
+        <button
+          onClick={handleCopyPrompt}
+          className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300
+                     border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
+        >
+          {promptCopied ? '✓ Copied!' : 'Copy Prompt'}
         </button>
         <button
           onClick={onReset}
