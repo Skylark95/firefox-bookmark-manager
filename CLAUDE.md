@@ -16,7 +16,7 @@ bun run test       # Run test suite once (vitest)
 bun run test:watch # Run tests in watch mode
 ```
 
-To run a single test file: `bunx vitest run src/utils/__tests__/filterBookmarks.test.ts`
+To run a single test file: `bunx vitest run src/utils/__tests__/mergeBookmarks.test.ts`
 
 No linter is configured.
 
@@ -45,11 +45,20 @@ All domain types are defined here and imported across the codebase:
 
 ### Data flow
 
+**Initial load (UploadView):**
 1. User uploads a processed `.json` file via `UploadView`
 2. `validateSchema()` in `src/utils/validateSchema.ts` checks the array at runtime using an `asserts data is Bookmark[]` type guard — after the call TypeScript narrows the type
 3. On success, `App.handleDataLoaded()` writes to `localStorage` (`offline_bookmarks`) and flips `isLoaded`
-4. Filter state (`activeCategory`, `activeTags`, `searchQuery`, `sortOrder`) is persisted separately under `offline_bookmarks_filters`
-5. `viewBookmarks` is derived first (active vs. archived), then `filteredBookmarks`, `categories`, and `allTags` are all derived from `viewBookmarks` via `useMemo` — never stored in state
+
+**Merge load (Sidebar "Load new file"):**
+1. User selects one or more `.json` files from the Sidebar's multi-file picker
+2. `App.handleFilesSelected()` reads all files concurrently via `Promise.allSettled`, validating each with `validateSchema()`
+3. Valid bookmark arrays are flattened and passed to `mergeBookmarks(existing, incoming)` — deduplication is by `url`; most recent `lastUsed` wins; `archived` status and `id` are always preserved from the existing record
+4. The merged array is written to `localStorage` and an `InfoToast` shows the stats (`Added X, updated Y, skipped Z`)
+
+**Common to both paths:**
+- Filter state (`activeCategory`, `activeTags`, `searchQuery`, `sortOrder`) is persisted separately under `offline_bookmarks_filters`
+- `viewBookmarks` is derived first (active vs. archived), then `filteredBookmarks`, `categories`, and `allTags` are all derived from `viewBookmarks` via `useMemo` — never stored in state
 
 ### Required data schema
 
@@ -76,6 +85,7 @@ Business logic is extracted to pure functions for testability:
 
 - `validateSchema(data: unknown)` — `asserts data is Bookmark[]`; throws on invalid input
 - `filterBookmarks(bookmarks, filters)` — filters and sorts; called from `App.tsx` useMemo
+- `mergeBookmarks(existing, incoming)` — merges two bookmark arrays, deduplicating by `url`; returns `{ merged, stats }` where stats tracks added/updated/skipped counts
 - `formatDate(unixSeconds)` — formats Unix timestamp to `"Jan 15, 2020"` style
 - `getHostname(url)` — extracts hostname with fallback to full URL on parse error
 
@@ -104,11 +114,12 @@ The view toggle ("Bookmarks / Archived") appears above the grid in `DashboardVie
 
 ### Component responsibilities
 
-- **`DashboardView`** — layout only; owns `drawerOpen` (mobile drawer state); renders the view toggle, `UndoToast`, and `ConfirmModal`; passes all filter props plus `isDark`/`onToggleDark` to `Sidebar` via a spread object
-- **`Sidebar`** — search input, sort select, category buttons, tag cloud, "Load new file" button, dark mode toggle in header; sort `onChange` casts `e.target.value as SortOrder`; header label switches between "Showing X of Y" and "X archived" based on `currentView`
+- **`DashboardView`** — layout only; owns `drawerOpen` (mobile drawer state); renders the view toggle, `UndoToast`, `InfoToast`, and `ConfirmModal`; passes all filter props plus `isDark`/`onToggleDark` to `Sidebar` via a spread object
+- **`Sidebar`** — search input, sort select, category buttons, tag cloud, dark mode toggle in header; footer has two actions: **"Load new file"** (hidden `<input type="file" multiple>` for merge imports) and **"Reset data"** (calls `onReset` to navigate back to UploadView and clear all data); header label switches between "Showing X of Y" and "X archived" based on `currentView`
 - **`BookmarkGrid`** — renders cards or empty state; passes archive/delete/restore handlers to each card
 - **`BookmarkCard`** — clicking category badge calls `onCategoryChange`; clicking tag badge calls `onTagClick`; copy URL button with clipboard fallback; always-visible Archive + Delete buttons (active view) or Restore + Delete buttons (archived view)
-- **`UndoToast`** — fixed bottom-center toast with 5s auto-dismiss; timer managed in `App.tsx` via `useRef`
+- **`UndoToast`** — fixed `bottom-6` center toast with 5s auto-dismiss and Undo button; timer managed in `App.tsx` via `useRef`
+- **`InfoToast`** — fixed `bottom-20` center toast with 4s auto-dismiss; no Undo button; used for merge stats after file import
 - **`ConfirmModal`** — centered overlay modal; dismisses on backdrop click or Cancel
 
 ### TypeScript notes

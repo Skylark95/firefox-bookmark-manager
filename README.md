@@ -38,6 +38,12 @@ The raw export doesn't match the required format. The app includes a built-in AI
 
 Upload the transformed JSON file. The app saves it to `localStorage` and renders your bookmarks with full-text search, category filtering, and tag filtering.
 
+### 4. Import more files later
+
+Use **Load new file** in the sidebar to import additional JSON files without losing your existing data. Files are merged by URL — the most recently used version wins. Archived status and IDs are always preserved from your existing records. Select multiple files at once to merge them all in one step.
+
+To start completely fresh, use **Reset data** in the sidebar footer.
+
 ## Data schema
 
 The app expects a JSON array. Each item must have:
@@ -63,6 +69,7 @@ The app expects a JSON array. Each item must have:
 - **Sort** — newest first, oldest first, or A–Z by title
 - **Filter persistence** — active filters survive page reloads
 - **Copy URL** — clipboard button on every card
+- **Multi-file import** — load additional JSON files from the dashboard sidebar; merged by URL, most recent wins, duplicates skipped
 - **Archive** — move bookmarks out of the main view; undo within 5 seconds; restore any time from the Archived view
 - **Delete** — permanently remove a bookmark with a confirmation prompt
 - **Dark mode** — toggle in the sidebar and mobile header; respects system preference on first visit, persists your choice

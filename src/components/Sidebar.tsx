@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { SortOrder } from '../types'
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
   onSortChange: (order: SortOrder) => void;
   onClearTags: () => void;
   onReset: () => void;
+  onFilesSelected: (files: File[]) => void;
   isDark: boolean;
   onToggleDark: () => void;
 }
@@ -24,8 +26,11 @@ export default function Sidebar({
   categories, allTags,
   activeCategory, activeTags, searchQuery, sortOrder, totalCount, filteredCount, currentView,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+  onFilesSelected,
   isDark, onToggleDark,
 }: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
       {/* Header */}
@@ -150,14 +155,32 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Footer: Load New File */}
-      <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-700">
+      {/* Footer */}
+      <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files && e.target.files.length > 0)
+              onFilesSelected(Array.from(e.target.files))
+            e.target.value = ''
+          }}
+        />
         <button
-          onClick={onReset}
+          onClick={() => fileInputRef.current?.click()}
           className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300
                      border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
         >
           Load new file
+        </button>
+        <button
+          onClick={onReset}
+          className="w-full text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-1"
+        >
+          Reset data
         </button>
       </div>
     </div>

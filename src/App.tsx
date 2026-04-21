@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import UploadView from './components/UploadView'
 import DashboardView from './components/DashboardView'
 import { filterBookmarks } from './utils/filterBookmarks'
+import { mergeBookmarks } from './utils/mergeBookmarks'
+import { validateSchema } from './utils/validateSchema'
 import type { Bookmark, SortOrder, FilterState } from './types'
 
 const STORAGE_KEY = 'offline_bookmarks'
@@ -51,8 +53,10 @@ export default function App() {
   const [sortOrder, setSortOrder]             = useState<SortOrder>('newest')
   const [currentView, setCurrentView]         = useState<'active' | 'archived'>('active')
   const [toast, setToast]                     = useState<ToastState | null>(null)
+  const [infoToast, setInfoToast]             = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const toastTimerRef                         = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const infoToastTimerRef                     = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const raw = readStorage(STORAGE_KEY)
@@ -107,6 +111,60 @@ export default function App() {
     setSortOrder('newest')
     setCurrentView('active')
     dismissToast()
+    dismissInfoToast()
+  }
+
+  function showInfoToast(message: string): void {
+    if (infoToastTimerRef.current) clearTimeout(infoToastTimerRef.current)
+    setInfoToast(message)
+    infoToastTimerRef.current = setTimeout(() => setInfoToast(null), 4000)
+  }
+
+  function dismissInfoToast(): void {
+    if (infoToastTimerRef.current) clearTimeout(infoToastTimerRef.current)
+    setInfoToast(null)
+  }
+
+  function readAndValidateFile(file: File): Promise<Bookmark[]> {
+    return new Promise((resolve, reject) => {
+      if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+        reject(new Error('Not a .json file'))
+        return
+      }
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const data: unknown = JSON.parse(e.target!.result as string)
+          validateSchema(data)
+          resolve(data)
+        } catch (err) {
+          reject(err)
+        }
+      }
+      reader.onerror = () => reject(new Error('File could not be read'))
+      reader.readAsText(file)
+    })
+  }
+
+  async function handleFilesSelected(files: File[]): Promise<void> {
+    const results = await Promise.allSettled(files.map(f => readAndValidateFile(f)))
+    const valid: Bookmark[][] = []
+    let failCount = 0
+    for (const r of results) {
+      if (r.status === 'fulfilled') valid.push(r.value)
+      else failCount++
+    }
+    if (valid.length === 0) {
+      showInfoToast(`Failed to load ${failCount} file${failCount > 1 ? 's' : ''}`)
+      return
+    }
+    const allIncoming = valid.flat()
+    const { merged, stats } = mergeBookmarks(bookmarks, allIncoming)
+    setBookmarks(merged)
+    writeStorage(STORAGE_KEY, JSON.stringify(merged))
+    let msg = `Added ${stats.added}, updated ${stats.updated}, skipped ${stats.skipped}`
+    if (failCount > 0) msg += ` — ${failCount} file${failCount > 1 ? 's' : ''} failed`
+    showInfoToast(msg)
   }
 
   function showToast(message: string, onUndo: () => void): void {
@@ -219,6 +277,9 @@ export default function App() {
       onToastDismiss={dismissToast}
       onDeleteConfirm={handleDeleteConfirm}
       onDeleteCancel={handleDeleteCancel}
+      onFilesSelected={handleFilesSelected}
+      infoToast={infoToast}
+      onInfoToastDismiss={dismissInfoToast}
       isDark={isDark}
       onToggleDark={toggleDark}
     />

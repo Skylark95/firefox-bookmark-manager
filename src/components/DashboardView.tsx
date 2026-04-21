@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 import BookmarkGrid from './BookmarkGrid'
 import UndoToast from './UndoToast'
+import InfoToast from './InfoToast'
 import ConfirmModal from './ConfirmModal'
 import type { Bookmark, SortOrder } from '../types'
 
@@ -29,6 +30,9 @@ interface Props {
   onSortChange: (order: SortOrder) => void;
   onClearTags: () => void;
   onReset: () => void;
+  onFilesSelected: (files: File[]) => void;
+  infoToast: string | null;
+  onInfoToastDismiss: () => void;
   onViewChange: (view: 'active' | 'archived') => void;
   onArchive: (id: string) => void;
   onDelete: (id: string) => void;
@@ -46,6 +50,7 @@ export default function DashboardView({
   activeCategory, activeTags, searchQuery, sortOrder,
   currentView, toast, confirmDeleteId,
   onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+  onFilesSelected, infoToast, onInfoToastDismiss,
   onViewChange, onArchive, onDelete, onRestore, onToastDismiss, onDeleteConfirm, onDeleteCancel,
   isDark, onToggleDark,
 }: Props) {
@@ -67,6 +72,7 @@ export default function DashboardView({
     filteredCount: filteredBookmarks.length,
     currentView,
     onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+    onFilesSelected,
     isDark, onToggleDark,
   }
 
@@ -192,6 +198,14 @@ export default function DashboardView({
           message={toast.message}
           onUndo={toast.onUndo}
           onDismiss={onToastDismiss}
+        />
+      )}
+
+      {/* Info toast */}
+      {infoToast && (
+        <InfoToast
+          message={infoToast}
+          onDismiss={onInfoToastDismiss}
         />
       )}
 
