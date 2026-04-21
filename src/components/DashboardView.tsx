@@ -55,6 +55,7 @@ export default function DashboardView({
   isDark, onToggleDark,
 }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
 
   useEffect(() => {
     if (!drawerOpen) return
@@ -71,7 +72,7 @@ export default function DashboardView({
     totalCount,
     filteredCount: filteredBookmarks.length,
     currentView,
-    onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset,
+    onCategoryChange, onTagClick, onSearchChange, onSortChange, onClearTags, onReset: () => setConfirmReset(true),
     onFilesSelected,
     isDark, onToggleDark,
   }
@@ -214,6 +215,16 @@ export default function DashboardView({
         <ConfirmModal
           onConfirm={onDeleteConfirm}
           onCancel={onDeleteCancel}
+        />
+      )}
+
+      {/* Reset confirmation modal */}
+      {confirmReset && (
+        <ConfirmModal
+          title="Reset all data?"
+          message="This will permanently delete all bookmarks. This cannot be undone."
+          onConfirm={() => { setConfirmReset(false); onReset(); }}
+          onCancel={() => setConfirmReset(false)}
         />
       )}
     </div>
