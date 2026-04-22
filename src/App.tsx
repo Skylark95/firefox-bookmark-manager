@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import UploadView from './components/UploadView'
 import DashboardView from './components/DashboardView'
+import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 import { filterBookmarks } from './utils/filterBookmarks'
 import { mergeBookmarks } from './utils/mergeBookmarks'
 import { validateSchema } from './utils/validateSchema'
@@ -246,42 +247,45 @@ export default function App() {
     [bookmarks]
   )
 
-  if (!isLoaded) {
-    return <UploadView onDataLoaded={handleDataLoaded} isDark={isDark} onToggleDark={toggleDark} />
-  }
-
   return (
-    <DashboardView
-      filteredBookmarks={filteredBookmarks}
-      totalCount={activeCount}
-      archivedCount={archivedCount}
-      categories={categories}
-      allTags={allTags}
-      activeCategory={activeCategory}
-      activeTags={activeTags}
-      searchQuery={searchQuery}
-      sortOrder={sortOrder}
-      currentView={currentView}
-      toast={toast}
-      confirmDeleteId={confirmDeleteId}
-      onCategoryChange={handleCategoryChange}
-      onTagClick={handleTagClick}
-      onSearchChange={setSearchQuery}
-      onSortChange={setSortOrder}
-      onClearTags={handleClearTags}
-      onReset={handleReset}
-      onViewChange={setCurrentView}
-      onArchive={handleArchive}
-      onDelete={handleDelete}
-      onRestore={handleRestore}
-      onToastDismiss={dismissToast}
-      onDeleteConfirm={handleDeleteConfirm}
-      onDeleteCancel={handleDeleteCancel}
-      onFilesSelected={handleFilesSelected}
-      infoToast={infoToast}
-      onInfoToastDismiss={dismissInfoToast}
-      isDark={isDark}
-      onToggleDark={toggleDark}
-    />
+    <>
+      {!isLoaded ? (
+        <UploadView onDataLoaded={handleDataLoaded} isDark={isDark} onToggleDark={toggleDark} />
+      ) : (
+        <DashboardView
+          filteredBookmarks={filteredBookmarks}
+          totalCount={activeCount}
+          archivedCount={archivedCount}
+          categories={categories}
+          allTags={allTags}
+          activeCategory={activeCategory}
+          activeTags={activeTags}
+          searchQuery={searchQuery}
+          sortOrder={sortOrder}
+          currentView={currentView}
+          toast={toast}
+          confirmDeleteId={confirmDeleteId}
+          onCategoryChange={handleCategoryChange}
+          onTagClick={handleTagClick}
+          onSearchChange={setSearchQuery}
+          onSortChange={setSortOrder}
+          onClearTags={handleClearTags}
+          onReset={handleReset}
+          onViewChange={setCurrentView}
+          onArchive={handleArchive}
+          onDelete={handleDelete}
+          onRestore={handleRestore}
+          onToastDismiss={dismissToast}
+          onDeleteConfirm={handleDeleteConfirm}
+          onDeleteCancel={handleDeleteCancel}
+          onFilesSelected={handleFilesSelected}
+          infoToast={infoToast}
+          onInfoToastDismiss={dismissInfoToast}
+          isDark={isDark}
+          onToggleDark={toggleDark}
+        />
+      )}
+      <PWAUpdatePrompt />
+    </>
   )
 }
