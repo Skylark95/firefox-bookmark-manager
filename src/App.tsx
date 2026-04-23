@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import UploadView from './components/UploadView'
 import DashboardView from './components/DashboardView'
+import PWAUpdatePrompt from './components/PWAUpdatePrompt'
+import ShareTargetModal from './components/ShareTargetModal'
 import { filterBookmarks } from './utils/filterBookmarks'
 import { mergeBookmarks } from './utils/mergeBookmarks'
 import { validateSchema } from './utils/validateSchema'
@@ -43,10 +45,16 @@ interface ToastState {
   onUndo: () => void;
 }
 
+interface ShareTargetData {
+  url: string;
+  title: string;
+}
+
 export default function App() {
   const [isDark, toggleDark] = useDarkMode()
   const [bookmarks, setBookmarks]             = useState<Bookmark[]>([])
   const [isLoaded, setIsLoaded]               = useState(false)
+  const [shareTargetData, setShareTargetData] = useState<ShareTargetData | null>(null)
   const [activeCategory, setActiveCategory]   = useState<string | null>(null)
   const [activeTags, setActiveTags]           = useState<string[]>([])
   const [searchQuery, setSearchQuery]         = useState('')
@@ -59,6 +67,14 @@ export default function App() {
   const infoToastTimerRef                     = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('share') && params.get('url')) {
+      const sharedUrl = params.get('url')!.trim()
+      const sharedTitle = (params.get('title') ?? params.get('text') ?? '').trim()
+      setShareTargetData({ url: sharedUrl, title: sharedTitle })
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+
     const raw = readStorage(STORAGE_KEY)
     if (raw) {
       try {
@@ -100,11 +116,28 @@ export default function App() {
     setIsLoaded(true)
   }
 
+  function handleAddBookmark(data: { url: string; title: string; category: string; tags: string[] }): void {
+    const newBookmark: Bookmark = {
+      id: crypto.randomUUID(),
+      url: data.url,
+      title: data.title,
+      category: data.category,
+      tags: data.tags,
+      lastUsed: Math.floor(Date.now() / 1000),
+      archived: false,
+    }
+    setBookmarks(prev => [...prev, newBookmark])
+    if (!isLoaded) setIsLoaded(true)
+    setShareTargetData(null)
+    showInfoToast('Bookmark added!')
+  }
+
   function handleReset(): void {
     removeStorage(STORAGE_KEY)
     removeStorage(FILTERS_KEY)
     setBookmarks([])
     setIsLoaded(false)
+    setShareTargetData(null)
     setActiveCategory(null)
     setActiveTags([])
     setSearchQuery('')
@@ -246,42 +279,57 @@ export default function App() {
     [bookmarks]
   )
 
-  if (!isLoaded) {
-    return <UploadView onDataLoaded={handleDataLoaded} isDark={isDark} onToggleDark={toggleDark} />
-  }
+  const showDashboard = isLoaded || shareTargetData !== null
 
   return (
-    <DashboardView
-      filteredBookmarks={filteredBookmarks}
-      totalCount={activeCount}
-      archivedCount={archivedCount}
-      categories={categories}
-      allTags={allTags}
-      activeCategory={activeCategory}
-      activeTags={activeTags}
-      searchQuery={searchQuery}
-      sortOrder={sortOrder}
-      currentView={currentView}
-      toast={toast}
-      confirmDeleteId={confirmDeleteId}
-      onCategoryChange={handleCategoryChange}
-      onTagClick={handleTagClick}
-      onSearchChange={setSearchQuery}
-      onSortChange={setSortOrder}
-      onClearTags={handleClearTags}
-      onReset={handleReset}
-      onViewChange={setCurrentView}
-      onArchive={handleArchive}
-      onDelete={handleDelete}
-      onRestore={handleRestore}
-      onToastDismiss={dismissToast}
-      onDeleteConfirm={handleDeleteConfirm}
-      onDeleteCancel={handleDeleteCancel}
-      onFilesSelected={handleFilesSelected}
-      infoToast={infoToast}
-      onInfoToastDismiss={dismissInfoToast}
-      isDark={isDark}
-      onToggleDark={toggleDark}
-    />
+    <>
+      {!showDashboard ? (
+        <UploadView onDataLoaded={handleDataLoaded} isDark={isDark} onToggleDark={toggleDark} />
+      ) : (
+        <DashboardView
+          filteredBookmarks={filteredBookmarks}
+          totalCount={activeCount}
+          archivedCount={archivedCount}
+          categories={categories}
+          allTags={allTags}
+          activeCategory={activeCategory}
+          activeTags={activeTags}
+          searchQuery={searchQuery}
+          sortOrder={sortOrder}
+          currentView={currentView}
+          toast={toast}
+          confirmDeleteId={confirmDeleteId}
+          onCategoryChange={handleCategoryChange}
+          onTagClick={handleTagClick}
+          onSearchChange={setSearchQuery}
+          onSortChange={setSortOrder}
+          onClearTags={handleClearTags}
+          onReset={handleReset}
+          onViewChange={setCurrentView}
+          onArchive={handleArchive}
+          onDelete={handleDelete}
+          onRestore={handleRestore}
+          onToastDismiss={dismissToast}
+          onDeleteConfirm={handleDeleteConfirm}
+          onDeleteCancel={handleDeleteCancel}
+          onFilesSelected={handleFilesSelected}
+          infoToast={infoToast}
+          onInfoToastDismiss={dismissInfoToast}
+          isDark={isDark}
+          onToggleDark={toggleDark}
+        />
+      )}
+      {shareTargetData && (
+        <ShareTargetModal
+          url={shareTargetData.url}
+          title={shareTargetData.title}
+          categories={categories}
+          bookmarks={bookmarks}
+          onAdd={handleAddBookmark}
+          onDismiss={() => setShareTargetData(null)}
+        />
+      )}
+      <PWAUpdatePrompt />
+    </>
   )
 }
